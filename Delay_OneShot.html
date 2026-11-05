@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset = "UTF-8">
+    <title> Start Stop Fun</title>
+    </head>
+    <body>
+        <button id = "trig" type="button">Play note</button>
+       
+
+         <script>
+ 
+const ctx = new AudioContext();
+
+const master = new GainNode(ctx);
+master.gain = 0.5;
+
+const delay = new DelayNode(ctx, { maxDelayTime: 2.5, delayTime: 0.35 });
+
+const feedback = new GainNode(ctx, { gain: 0.5 });
+
+delay.connect(feedback);
+feedback.connect(delay);
+
+delay.connect(master);
+master.connect(ctx.destination);
+
+document.getElementById('trig').addEventListener('click', function() {
+    ctx.resume();
+
+  const t = ctx.currentTime;
+  const osc = new OscillatorNode(ctx, { type: 'triangle', frequency: 440 });
+  const env = new GainNode(ctx, { gain: 0 });
+
+  env.gain.setValueAtTime(0, t);
+  env.gain.linearRampToValueAtTime(1, t + 0.01);
+  env.gain.linearRampToValueAtTime(0.4, t + 0.5);
+  env.gain.setValueAtTime(0.4, t + 0.5);
+  env.gain.linearRampToValueAtTime(0, t + 1.5);
+
+    osc.connect(env);
+    env.connect(master);
+    env.connect(delay);
+
+    osc.start(t);
+    osc.stop(t + 1.5);
+});
+
+document.getElementById('time').addEventListener('input', function (e) {
+    delay.delayTime.setTargetAtTime(e.target.value, ctx.currentTime, 0.1);
+});
+
+document.getElementById('fb').addEventListener('input', function (e) {
+    feedback.gain.setTargetAtTime(e.target.value / 100, ctx.currentTime, 0.5);
+});
+
+</script>
+
+</body>
+</html>
